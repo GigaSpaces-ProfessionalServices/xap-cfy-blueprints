@@ -1,0 +1,93 @@
+
+node_types:
+  xap.monitoredServer:
+    derived_from: cloudify.nodes.Compute
+    interfaces:
+      cloudify.interfaces.monitoring_agent:
+        install:
+          implementation: diamond.diamond_agent.tasks.install
+          inputs:
+            diamond_config:
+              default:
+                interval: 1
+        start: diamond.diamond_agent.tasks.start
+        stop: diamond.diamond_agent.tasks.stop
+        uninstall: diamond.diamond_agent.tasks.uninstall
+
+      cloudify.interfaces.monitoring:
+        start:
+          implementation: diamond.diamond_agent.tasks.add_collectors
+          inputs:
+            collectors_config:
+              default:
+                CPUCollector: {}
+                MemoryCollector: {}
+                LoadAverageCollector: {}
+                DiskUsageCollector:
+                  config:
+                    devices: sd[a-z]+[0-9]*$
+                NetworkCollector: {}
+  xap_type:
+    derived_from: cloudify.nodes.ApplicationServer
+    properties:
+      xap_license_key:
+        type: string
+        default: ''
+      xap_download_url:
+        type: string
+        default: ''
+      xap_install_prefix:
+        type: string
+        default: ''
+      locator_ip:
+        type: string
+        default: ''
+      ip:
+        type: string
+        default: ''
+      gsa_gsm:
+        type: integer
+        default: 0
+      gsa_global_gsm:
+        type: integer
+        default: 0
+      gsa_lus:
+        type: integer
+        default: 0
+      gsa_global_lus:
+        type: integer
+        default: 0
+      gsa_gsc:
+        type: integer
+        default: 0
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/install_xap.sh
+        start:
+          implementation: scripts/start_xap.sh
+        stop:
+          implementation: scripts/stop_xap.sh
+        delete:
+          implementation: scripts/uninstall_xap.sh
+  xap_webui_type:
+    derived_from: cloudify.nodes.WebServer
+    properties:
+      xap_install_prefix:
+        type: string
+        default: ''
+      ip:
+        type: string
+        default: ''
+      locator_ip:
+        type: string
+        default: ''
+      webui_port:
+        type: integer
+        default: 8099
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/start_webui.sh
+        stop:
+          implementation: scripts/stop_webui.sh

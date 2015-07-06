@@ -1,0 +1,87 @@
+tosca_definitions_version: cloudify_dsl_1_1
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.2/types.yaml
+  - http://www.getcloudify.org/spec/diamond-plugin/1.1/plugin.yaml
+  - shared/xap.yaml
+
+inputs:
+    manager_ip:
+      description: >
+        IP address of the manager host
+
+    username:
+      description: >
+        Linux username
+
+    password:
+      description: >
+        Linux password
+
+    xap_license_key:
+      description: >
+        XAP license key to be put into gslicense.xml
+
+    xap_download_url:
+      description: >
+        Link to XAP installation download
+
+    xap_install_prefix:
+      description: >
+        Directory to install XAP to
+      default: /opt
+
+node_templates:
+  manager_host:
+    type: xap.monitoredServer
+    properties:
+      install_agent: true
+      ip: { get_input: manager_ip}
+    interfaces:
+      cloudify.interfaces.worker_installer:
+        install:
+          inputs:
+            cloudify_agent: &CLOUDIFY_AGENT
+              user: { get_input: username }
+              password: { get_input: password }
+        start:
+          inputs:
+            cloudify_agent: *CLOUDIFY_AGENT
+        stop:
+          inputs:
+            cloudify_agent: *CLOUDIFY_AGENT
+        uninstall:
+          inputs:
+            cloudify_agent: *CLOUDIFY_AGENT
+        restart:
+          inputs:
+            cloudify_agent: *CLOUDIFY_AGENT
+      cloudify.interfaces.plugin_installer:
+        install:
+          inputs:
+            cloudify_agent: *CLOUDIFY_AGENT
+  manager_xap:
+    type: xap_type
+    properties:
+      xap_license_key: { get_input: xap_license_key }
+      xap_download_url: { get_input: xap_download_url }
+      xap_install_prefix: { get_input: xap_install_prefix }
+      locator_ip: { get_input: manager_ip }
+      ip: { get_input: manager_ip }
+      gsa_gsm: 1
+      gsa_lus: 1
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: manager_host
+  webui:
+    type: xap_webui_type
+    properties:
+      xap_install_prefix: { get_input: xap_install_prefix }
+      locator_ip: { get_input: manager_ip }
+      ip: { get_input: manager_ip }
+      webui_port: 9099
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: manager_host
+      -  type: cloudify.relationships.depends_on
+         target: manager_xap
