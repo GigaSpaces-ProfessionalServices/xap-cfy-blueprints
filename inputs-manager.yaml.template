@@ -1,6 +1,0 @@
-manager_ip: MANAGER_IP
-username: ''
-password: ''
-xap_license_key: ''
-xap_download_url: ''
-xap_install_prefix: /opt
