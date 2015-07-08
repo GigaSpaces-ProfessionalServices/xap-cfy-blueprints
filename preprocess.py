@@ -5,6 +5,13 @@ import yaml
 
 
 def process_entity(processed_inputs_struct, entity, entity_structs):
+    """Expand entity config by flattening structs into key-value pairs.
+
+    Args:
+      processed_inputs_struct: {dict<str key, str value>} resulting dictionary.
+      entity: {str} name of the entity.
+      entity_structs: {list<dict>} structs to be flattened.
+    """
     for i, entity_struct in enumerate(entity_structs):
         for key, value in entity_struct.items():
             key_i = '{0}_{1}_{2}'.format(entity, i+1, key)
@@ -12,6 +19,15 @@ def process_entity(processed_inputs_struct, entity, entity_structs):
 
 
 def preprocess(blueprint_template, inputs):
+    """Preprocess the given Jinja blueprint template and complex input.
+
+    Args:
+      blueprint_template: {jinja2.Template}.
+      inputs: {str}.
+
+    Returns:
+      {tuple<str rendered_blueprint, str processed_inputs_yaml>}.
+    """
     raw_inputs_struct = yaml.load(inputs)
     processed_inputs_struct = {}
     for key, value in raw_inputs_struct.items():
