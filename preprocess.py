@@ -1,5 +1,6 @@
 import argparse
 import jinja2
+import os
 import yaml
 
 
@@ -10,7 +11,7 @@ def process_entity(processed_inputs_struct, entity, entity_structs):
             processed_inputs_struct[key_i] = value
 
 
-def preprocess(blueprint, inputs):
+def preprocess(blueprint_template, inputs):
     raw_inputs_struct = yaml.load(inputs)
     processed_inputs_struct = {}
     for key, value in raw_inputs_struct.items():
@@ -22,7 +23,6 @@ def preprocess(blueprint, inputs):
             process_entity(processed_inputs_struct, entity, value)
     processed_inputs_yaml = yaml.dump(processed_inputs_struct,
                                       default_flow_style=False)
-    blueprint_template = jinja2.Template(blueprint)
     rendered_blueprint = blueprint_template.render(**raw_inputs_struct)
     return rendered_blueprint, processed_inputs_yaml
 
@@ -33,9 +33,14 @@ if __name__ == '__main__':
     parser.add_argument('-p', dest='blueprint', help='Blueprint file')
     parser.add_argument('-i', dest='inputs', help='Inputs file')
     args = parser.parse_args()
+    template_dir = os.path.dirname(os.path.abspath(args.blueprint))
+    blueprint_basename = os.path.basename(os.path.abspath(args.blueprint))
+    template_loader = jinja2.FileSystemLoader(searchpath=template_dir)
+    template_env = jinja2.Environment(loader=template_loader)
+    blueprint_template = template_env.get_template(blueprint_basename)
     # TODO UTF-8?
     rendered_blueprint, processed_inputs_yaml = preprocess(
-        open(args.blueprint).read(), open(args.inputs).read())
+        blueprint_template, open(args.inputs).read())
     with open(args.blueprint.replace('.yaml', '_processed.yaml'),
               'w') as output_file:
         output_file.write(rendered_blueprint)

@@ -52,38 +52,7 @@ node_templates:
       install_agent: true
       ip: { get_input: manager_host_{{ loop.index }}_ip }
     interfaces:
-      cloudify.interfaces.worker_installer:
-        install:
-          inputs:
-            cloudify_agent:
-              user: { get_input: username }
-              password: { get_input: password }
-        start:
-          inputs:
-            cloudify_agent:
-              user: { get_input: username }
-              password: { get_input: password }
-        stop:
-          inputs:
-            cloudify_agent:
-              user: { get_input: username }
-              password: { get_input: password }
-        uninstall:
-          inputs:
-            cloudify_agent:
-              user: { get_input: username }
-              password: { get_input: password }
-        restart:
-          inputs:
-            cloudify_agent:
-              user: { get_input: username }
-              password: { get_input: password }
-      cloudify.interfaces.plugin_installer:
-        install:
-          inputs:
-            cloudify_agent:
-              user: { get_input: username }
-              password: { get_input: password }
+{% include 'agent_installer_fragment.yaml' %}
   manager_xap_{{ loop.index }}:
     type: xap_type
     properties:
@@ -117,38 +86,7 @@ node_templates:
       install_agent: true
       ip: { get_input: grid_host_{{ loop.index }}_ip }
     interfaces:
-      cloudify.interfaces.worker_installer:
-        install:
-          inputs:
-            cloudify_agent:
-              user: { get_input: username }
-              password: { get_input: password }
-        start:
-          inputs:
-            cloudify_agent:
-              user: { get_input: username }
-              password: { get_input: password }
-        stop:
-          inputs:
-            cloudify_agent:
-              user: { get_input: username }
-              password: { get_input: password }
-        uninstall:
-          inputs:
-            cloudify_agent:
-              user: { get_input: username }
-              password: { get_input: password }
-        restart:
-          inputs:
-            cloudify_agent:
-              user: { get_input: username }
-              password: { get_input: password }
-      cloudify.interfaces.plugin_installer:
-        install:
-          inputs:
-            cloudify_agent:
-              user: { get_input: username }
-              password: { get_input: password }
+{% include 'agent_installer_fragment.yaml' %}
   grid_xap_{{ loop.index }}:
     type: xap_type
     properties:
