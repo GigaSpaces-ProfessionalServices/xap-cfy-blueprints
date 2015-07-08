@@ -1,2 +1,3 @@
 inputs*.yaml
 restart*.sh
+*processed*

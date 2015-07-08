@@ -39,7 +39,7 @@ node_types:
       xap_install_prefix:
         type: string
         default: ''
-      locator_ip:
+      lookuplocators:
         type: string
         default: ''
       ip:
@@ -79,7 +79,7 @@ node_types:
       ip:
         type: string
         default: ''
-      locator_ip:
+      lookuplocators:
         type: string
         default: ''
       webui_port:

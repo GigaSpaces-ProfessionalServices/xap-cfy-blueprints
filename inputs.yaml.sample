@@ -1,0 +1,15 @@
+manager_hosts:
+- ip: 192.168.33.31
+- ip: 192.168.33.33
+
+grid_hosts:
+- ip: 192.168.33.32
+  gsa_gsc: 1
+- ip: 192.168.33.34
+  gsa_gsc: 1
+
+username: vagrant
+password: ''
+xap_license_key: ''
+xap_download_url: ''
+xap_install_prefix: /opt
