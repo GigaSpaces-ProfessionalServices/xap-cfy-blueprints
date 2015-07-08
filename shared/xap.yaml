@@ -91,3 +91,23 @@ node_types:
           implementation: scripts/start_webui.sh
         stop:
           implementation: scripts/stop_webui.sh
+  xap_mvn_app_type:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties:
+      download_url:
+        type: string
+        default: ''
+      xap_install_prefix:
+        type: string
+        default: ''
+      lookuplocators:
+        type: string
+        default: ''
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/install_xap_mvn_app.sh
+        start:
+          implementation: scripts/deploy_xap_mvn_app.sh
+        delete:
+          implementation: scripts/uninstall_xap_mvn_app.sh

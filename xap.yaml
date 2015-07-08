@@ -44,6 +44,10 @@ inputs:
         Directory to install XAP to
       default: /opt
 
+    mvn_app_download_url:
+      description: >
+        Link to zip archive with Maven app
+
 node_templates:
 {% for manager_host in manager_hosts %}
   manager_host_{{ loop.index }}:
@@ -103,4 +107,17 @@ node_templates:
       -  type: cloudify.relationships.depends_on
          target: manager_xap_{{ loop.index }}
 {% endfor %}
+{% endfor %}
+  mvn_app:
+    type: xap_mvn_app_type
+    properties:
+      xap_install_prefix: { get_input: xap_install_prefix }
+      lookuplocators: {% for m in manager_hosts %}{{ m.ip }}:4174{% if not loop.last %},{% endif %}{% endfor %}
+      download_url: { get_input: mvn_app_download_url }
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: manager_host_1
+{% for grid_host in grid_hosts %}
+      -  type: cloudify.relationships.depends_on
+         target: grid_host_{{ loop.index }}
 {% endfor %}

@@ -13,3 +13,4 @@ password: ''
 xap_license_key: ''
 xap_download_url: ''
 xap_install_prefix: /opt
+mvn_app_download_url: ''
