@@ -12,6 +12,7 @@ With the virtualenv activated that has the `cfy` command, run
 python preprocess.py -p xap.yaml -i inputs.yaml
 ```
 This should create files `xap_processed.yaml` and `inputs_processed.yaml`.
+
 4. Use the created files in Cloudify manager:
 ```
 cfy blueprints upload -p xap_processed.yaml -b $BLUEPRINT_NAME
