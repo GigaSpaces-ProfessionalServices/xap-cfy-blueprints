@@ -7,12 +7,11 @@ In order to deploy XAP grid, perform the following steps:
 RedHat-like OS (with yum) support as well as per-machine configurable credentials will be added later.
 2. Copy inputs.yaml.sample to inputs.yaml and populate that with deployment data. For manager_hosts and grid_hosts sections, each list item should correspond to a separate host/node. The sections may contain any number of nodes as long as the IPs correspond to pre-provisioned machines.
 3. Process the template blueprint and flatten the input file.
-With the virtualenv activated that has the `cfy` command, run
-```
-python preprocess.py -p xap.yaml -i inputs.yaml
-```
-This should create files `xap_processed.yaml` and `inputs_processed.yaml`.
-
+   With the virtualenv activated that has the `cfy` command, run
+   ```
+   python preprocess.py -p xap.yaml -i inputs.yaml
+   ```
+   This should create files `xap_processed.yaml` and `inputs_processed.yaml`.
 4. Use the created files in Cloudify manager:
 ```
 cfy blueprints upload -p xap_processed.yaml -b $BLUEPRINT_NAME
