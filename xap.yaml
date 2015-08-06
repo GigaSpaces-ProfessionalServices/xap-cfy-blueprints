@@ -3,6 +3,7 @@ tosca_definitions_version: cloudify_dsl_1_1
 imports:
   - http://www.getcloudify.org/spec/cloudify/3.2/types.yaml
   - http://www.getcloudify.org/spec/diamond-plugin/1.1/plugin.yaml
+  - http://www.getcloudify.org/spec/host-pool-plugin/1.2/plugin.yaml
   - shared/xap.yaml
 
 inputs:
@@ -12,16 +13,14 @@ inputs:
         IP address of the manager host {{ loop.index }}
 {% endfor %}
 
-{% for grid_host in manager_hosts %}
-    grid_host_{{ loop.index }}_ip:
+    gsa_gsc:
       description: >
-        IP address of the grid host {{ loop.index }}
-
-    grid_host_{{ loop.index }}_gsa_gsc:
-      description: >
-        Number of grid service containers to create on the host {{ loop.index }}
+        Number of grid service containers to create on the host
       default: 1
-{% endfor %}
+
+    host_pool_service_endpoint:
+      description: >
+        Number of grid service containers to create on the host
 
     username:
       description: >
@@ -79,28 +78,25 @@ node_templates:
       -  type: cloudify.relationships.depends_on
          target: manager_xap_{{ loop.index }}
 {% endfor %}
-{% for grid_host in grid_hosts %}
-  grid_host_{{ loop.index }}:
-    type: xap.monitoredServer
-    properties:
-      install_agent: true
-      ip: { get_input: grid_host_{{ loop.index }}_ip }
-    interfaces:
-{% include 'agent_installer_fragment.yaml' %}
-  grid_xap_{{ loop.index }}:
+  grid_host:
+    type: xap.hostPluginServer
+    instances:
+      deploy: 2
+  grid_xap:
     type: xap_type
     properties:
       xap_license_key: { get_input: xap_license_key }
       xap_download_url: { get_input: xap_download_url }
       xap_install_prefix: { get_input: xap_install_prefix }
       lookuplocators: {% for m in manager_hosts %}{{ m.ip }}:4174{% if not loop.last %},{% endif %}{% endfor %}
-      ip: { get_input: grid_host_{{ loop.index }}_ip }
-      gsa_gsc: { get_input: grid_host_{{ loop.index }}_gsa_gsc }
+      # FIXME: the following does not work, see CFY-1946
+      # https://cloudifysource.atlassian.net/browse/CFY-1946
+      ip: { get_attribute: [ grid_host, ip ] }
+      gsa_gsc: { get_input: gsa_gsc }
     relationships:
       -  type: cloudify.relationships.contained_in
-         target: grid_host_{{ loop.index }}
+         target: grid_host
 {% for manager_host in manager_hosts %}
       -  type: cloudify.relationships.depends_on
          target: manager_xap_{{ loop.index }}
-{% endfor %}
 {% endfor %}
