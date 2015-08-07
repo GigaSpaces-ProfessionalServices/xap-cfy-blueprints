@@ -1,6 +1,7 @@
 #!/bin/bash
-export LOOKUPLOCATORS=$(ctx node properties lookuplocators)
-export NIC_ADDR=$(ctx node properties ip)
+#export LOOKUPLOCATORS=$(ctx node properties lookuplocators)
+NETWORK_INTERFACE=$(ctx node properties network_interface)
+export NIC_ADDR=$(ip addr | grep inet | grep $NETWORK_INTERFACE | awk -F" " '{print $2}'| sed -e 's/\/.*$//')
 INSTALL_PREFIX=$(ctx node properties xap_install_prefix)
 GSA_GSM=$(ctx -j node properties gsa_gsm)
 GSA_GLOBAL_GSM=$(ctx -j node properties gsa_global_gsm)
@@ -8,7 +9,7 @@ GSA_LUS=$(ctx -j node properties gsa_lus)
 GSA_GLOBAL_LUS=$(ctx -j node properties gsa_global_lus)
 GSA_GSC=$(ctx -j node properties gsa_gsc)
 
-export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
+#export EXT_JAVA_OPTIONS="-Dcom.gs.multicast.enabled=false"
 
 GS_AGENT_ARGS="gsa.gsm $GSA_GSM gsa.global.gsm $GSA_GLOBAL_GSM gsa.lus $GSA_LUS gsa.global.lus $GSA_GLOBAL_LUS gsa.gsc $GSA_GSC"
 

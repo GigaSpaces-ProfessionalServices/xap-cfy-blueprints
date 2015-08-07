@@ -1,8 +1,19 @@
 
 node_types:
-  xap.monitoredServer:
-    derived_from: cloudify.nodes.Compute
+  xap.hostPluginManagerServer:
+    derived_from: cloudify.hostpool.nodes.Host
     interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: hostpool.cloudify_hostpool_plugin.tasks.acquire
+          inputs:
+            service_url:
+              default: { get_input: manager_host_pool_service_endpoint }
+        delete:
+          implementation: hostpool.cloudify_hostpool_plugin.tasks.release
+          inputs:
+            service_url:
+              default: { get_input: manager_host_pool_service_endpoint }
       cloudify.interfaces.monitoring_agent:
         install:
           implementation: diamond.diamond_agent.tasks.install
@@ -27,7 +38,7 @@ node_types:
                   config:
                     devices: sd[a-z]+[0-9]*$
                 NetworkCollector: {}
-  xap.hostPluginServer:
+  xap.hostPluginGsaServer:
     derived_from: cloudify.hostpool.nodes.Host
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -35,12 +46,36 @@ node_types:
           implementation: hostpool.cloudify_hostpool_plugin.tasks.acquire
           inputs:
             service_url:
-              default: { get_input: host_pool_service_endpoint }
+              default: { get_input: gsa_host_pool_service_endpoint }
         delete:
           implementation: hostpool.cloudify_hostpool_plugin.tasks.release
           inputs:
             service_url:
-              default: { get_input: host_pool_service_endpoint }
+              default: { get_input: gsa_host_pool_service_endpoint }
+      cloudify.interfaces.monitoring_agent:
+        install:
+          implementation: diamond.diamond_agent.tasks.install
+          inputs:
+            diamond_config:
+              default:
+                interval: 1
+        start: diamond.diamond_agent.tasks.start
+        stop: diamond.diamond_agent.tasks.stop
+        uninstall: diamond.diamond_agent.tasks.uninstall
+
+      cloudify.interfaces.monitoring:
+        start:
+          implementation: diamond.diamond_agent.tasks.add_collectors
+          inputs:
+            collectors_config:
+              default:
+                CPUCollector: {}
+                MemoryCollector: {}
+                LoadAverageCollector: {}
+                DiskUsageCollector:
+                  config:
+                    devices: sd[a-z]+[0-9]*$
+                NetworkCollector: {}
 
   xap_type:
     derived_from: cloudify.nodes.ApplicationServer
@@ -55,9 +90,6 @@ node_types:
         type: string
         default: ''
       lookuplocators:
-        type: string
-        default: ''
-      ip:
         type: string
         default: ''
       gsa_gsm:
@@ -75,6 +107,9 @@ node_types:
       gsa_gsc:
         type: integer
         default: 0
+      network_interface:
+        type: string
+        default: ''
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -91,15 +126,15 @@ node_types:
       xap_install_prefix:
         type: string
         default: ''
-      ip:
-        type: string
-        default: ''
       lookuplocators:
         type: string
         default: ''
       webui_port:
         type: integer
         default: 8099
+      network_interface:
+        type: string
+        default: ''
     interfaces:
       cloudify.interfaces.lifecycle:
         start:

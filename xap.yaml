@@ -3,32 +3,22 @@ tosca_definitions_version: cloudify_dsl_1_1
 imports:
   - http://www.getcloudify.org/spec/cloudify/3.2/types.yaml
   - http://www.getcloudify.org/spec/diamond-plugin/1.1/plugin.yaml
-  - http://www.getcloudify.org/spec/host-pool-plugin/1.2/plugin.yaml
+  - https://raw.githubusercontent.com/trnvsk/cloudify-host-pool-plugin/1.2-no-delete-queues/plugin.yaml
   - shared/xap.yaml
 
 inputs:
-{% for manager_host in manager_hosts %}
-    manager_host_{{ loop.index }}_ip:
-      description: >
-        IP address of the manager host {{ loop.index }}
-{% endfor %}
-
     gsa_gsc:
       description: >
         Number of grid service containers to create on the host
       default: 1
 
-    host_pool_service_endpoint:
+    manager_host_pool_service_endpoint:
       description: >
-        Number of grid service containers to create on the host
+        URL of host pool service for manager hosts
 
-    username:
+    gsa_host_pool_service_endpoint:
       description: >
-        Linux username
-
-    password:
-      description: >
-        Linux password
+        URL of host pool service for grid hosts
 
     xap_license_key:
       description: >
@@ -43,60 +33,53 @@ inputs:
         Directory to install XAP to
       default: /opt
 
+    network_interface:
+      description: >
+        Network interface to use to start XAP
+      default: eth0
+
 node_templates:
-{% for manager_host in manager_hosts %}
-  manager_host_{{ loop.index }}:
-    type: xap.monitoredServer
-    properties:
-      install_agent: true
-      ip: { get_input: manager_host_{{ loop.index }}_ip }
-    interfaces:
-{% include 'agent_installer_fragment.yaml' %}
-  manager_xap_{{ loop.index }}:
+  manager_host:
+    type: xap.hostPluginManagerServer
+    instances:
+      deploy: 2
+  manager:
     type: xap_type
     properties:
       xap_license_key: { get_input: xap_license_key }
       xap_download_url: { get_input: xap_download_url }
       xap_install_prefix: { get_input: xap_install_prefix }
-      lookuplocators: {% for m in manager_hosts %}{{ m.ip }}:4174{% if not loop.last %},{% endif %}{% endfor %}
-      ip: { get_input: manager_host_{{ loop.index }}_ip }
       gsa_gsm: 1
       gsa_lus: 1
+      network_interface: { get_input: network_interface }
     relationships:
       -  type: cloudify.relationships.contained_in
-         target: manager_host_{{ loop.index }}
-  webui_{{ loop.index }}:
+         target: manager_host
+  webui:
     type: xap_webui_type
     properties:
       xap_install_prefix: { get_input: xap_install_prefix }
-      lookuplocators: {% for m in manager_hosts %}{{ m.ip }}:4174{% if not loop.last %},{% endif %}{% endfor %}
-      ip: { get_input: manager_host_{{ loop.index }}_ip }
       webui_port: 9099
+      network_interface: { get_input: network_interface }
     relationships:
       -  type: cloudify.relationships.contained_in
-         target: manager_host_{{ loop.index }}
+         target: manager_host
       -  type: cloudify.relationships.depends_on
-         target: manager_xap_{{ loop.index }}
-{% endfor %}
-  grid_host:
-    type: xap.hostPluginServer
+         target: manager
+  gsa_host:
+    type: xap.hostPluginGsaServer
     instances:
       deploy: 2
-  grid_xap:
+  gsa:
     type: xap_type
     properties:
       xap_license_key: { get_input: xap_license_key }
       xap_download_url: { get_input: xap_download_url }
       xap_install_prefix: { get_input: xap_install_prefix }
-      lookuplocators: {% for m in manager_hosts %}{{ m.ip }}:4174{% if not loop.last %},{% endif %}{% endfor %}
-      # FIXME: the following does not work, see CFY-1946
-      # https://cloudifysource.atlassian.net/browse/CFY-1946
-      ip: { get_attribute: [ grid_host, ip ] }
       gsa_gsc: { get_input: gsa_gsc }
+      network_interface: { get_input: network_interface }
     relationships:
       -  type: cloudify.relationships.contained_in
-         target: grid_host
-{% for manager_host in manager_hosts %}
+         target: gsa_host
       -  type: cloudify.relationships.depends_on
-         target: manager_xap_{{ loop.index }}
-{% endfor %}
+         target: manager
